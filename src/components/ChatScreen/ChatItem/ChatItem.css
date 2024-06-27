@@ -1,0 +1,44 @@
+/* src/components/ChatScreen/ChatItem/ChatItem.css */
+.chat-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.chat-item.left {
+  align-items: flex-start;
+}
+
+.chat-item.right {
+  align-items: flex-end;
+}
+
+.username {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.message-bubble {
+  background: #007bff;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.chat-item.right .message-bubble {
+  background: #ccc;
+  color: black;
+}
+
+.timestamp {
+  font-size: 0.8em;
+  color: #999;
+  margin-top: 5px;
+}
+
+.date-stamp {
+  text-align: center;
+  margin: 10px 0;
+  color: #666;
+  font-weight: bold;
+}
