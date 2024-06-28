@@ -33,7 +33,7 @@ const Dialog = ({ onConfirm, error }) => {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          onKeyDown={handleKeyPress}
+          onKeyUp={handleKeyPress}
         />
         <button onClick={handleConfirm} disabled={isConfirmDisabled}>
           Confirm

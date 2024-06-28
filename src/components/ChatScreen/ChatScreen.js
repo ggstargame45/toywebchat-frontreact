@@ -67,7 +67,7 @@ const ChatScreen = ({ baseUrl, username }) => {
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={handleKeyPress}
+          onKeyUp={handleKeyPress}
         />
         <button onClick={handleSend} disabled={newMessage.trim() === ''}>
           Send
