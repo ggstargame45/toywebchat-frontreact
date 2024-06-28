@@ -34,8 +34,8 @@ const App = () => {
     } catch (error) {
       console.error('Error in handleConfirm:', error);
       setError('Input a valid URL');
-      setBaseUrl('localhost:8080');
-      setUsername('홍길동');
+      setBaseUrl('');
+      setUsername('');
     }
   };
 
