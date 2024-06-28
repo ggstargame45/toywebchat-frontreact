@@ -12,7 +12,7 @@ const ChatScreen = ({ baseUrl, username }) => {
   useEffect(() => {
     const fetchChatInit = async () => {
       try {
-        const response = await fetch(`$http://{baseUrl}/chat-init`);
+        const response = await fetch(`https://${baseUrl}/chat-init`);
         const data = await response.json();
         setMessages(data);
       } catch (error) {
@@ -22,7 +22,7 @@ const ChatScreen = ({ baseUrl, username }) => {
 
     fetchChatInit();
 
-    const ws = new WebSocket(`ws://${baseUrl}/ws`);
+    const ws = new WebSocket(`wss://${baseUrl}/ws`);
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       setMessages((prevMessages) => [...prevMessages, message]);
@@ -38,7 +38,7 @@ const ChatScreen = ({ baseUrl, username }) => {
   const handleSend = () => {
     if (newMessage.trim() === '') return;
 
-    const ws = new WebSocket(`ws://${baseUrl}/ws`);
+    const ws = new WebSocket(`wss://${baseUrl}/ws`);
     ws.onopen = () => {
       const message = { username, message: newMessage };
       ws.send(JSON.stringify(message));

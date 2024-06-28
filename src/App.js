@@ -12,13 +12,13 @@ const App = () => {
   const { messages, chatError, loading } = useChat(baseUrl, username);
 
   const handleConfirm = async (url, user) => {
-    console.log(`handleConfirm called with URL: http://${url} and Username: ${user}`);
+    console.log(`handleConfirm called with URL: https://${url} and Username: ${user}`);
     setBaseUrl(url);
     setUsername(user);
     setError('');
 
     try {
-      const response = await fetch(`http://${url}/chat-init`);
+      const response = await fetch(`https://${url}/chat-init`);
       const contentType = response.headers.get('content-type');
 
       if (!response.ok) {
