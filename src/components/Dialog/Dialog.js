@@ -1,46 +1,21 @@
 // src/components/Dialog/Dialog.js
-import React, { useState } from 'react';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import './Dialog.css';
 
-const Dialog = ({ onConfirm, error }) => {
-  const [baseUrl, setBaseUrl] = useState('');
-  const [username, setUsername] = useState('');
+const DialogBase = ({ isOpen, children }) => {
+  if (!isOpen) return null;
 
-  const isConfirmDisabled = !baseUrl || !username;
+  console.log("Dialog.js: ", children);
 
-  const handleConfirm = () => {
-    onConfirm(baseUrl, username);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && baseUrl.trim() !== '' && username.trim() !== '') {
-      handleConfirm();
-    }
-  };
-
-  return (
+  return ReactDOM.createPortal(
     <div className="dialog-overlay">
       <div className="dialog">
-        <input
-          type="text"
-          placeholder="Base URL"
-          value={baseUrl}
-          onChange={(e) => setBaseUrl(e.target.value)}
-        />
-        {error && <div className="error">{error}</div>}
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          onKeyUp={handleKeyPress}
-        />
-        <button onClick={handleConfirm} disabled={isConfirmDisabled}>
-          Confirm
-        </button>
+        {children}
       </div>
-    </div>
+    </div>,
+    document.getElementById('dialog-root')
   );
 };
 
-export default Dialog;
+export default DialogBase;

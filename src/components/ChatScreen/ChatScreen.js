@@ -1,78 +1,84 @@
 // src/components/ChatScreen/ChatScreen.js
-import React, { useEffect, useRef, useState } from 'react';
-import ChatItem from './ChatItem/ChatItem';
-import './ChatScreen.css';
-import { groupMessagesByDate } from '../../utils/groupMessagesByDate';
+import React, { useEffect, useRef, useState } from "react";
+import { FaSync } from "react-icons/fa";
+import ChatItem from "./ChatItem/ChatItem";
+import "./ChatScreen.css";
+import { groupMessagesByDate } from "../../utils/groupMessagesByDate";
+import useChat from "../../hooks/useChat";
+import { postChatRefresh } from "../../services/api";
 
-const ChatScreen = ({ baseUrl, username }) => {
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
+const ChatInputComponent = ({ baseUrl, username }) => {
+  const { sendMessage } = useChat(baseUrl, username);
+  const [newMessage, setNewMessage] = useState("");
+
+  const handleSend = () => {
+    if (newMessage.trim() === "") return;
+    sendMessage(newMessage);
+    setNewMessage("");
+  };
+  
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && newMessage.trim() !== "") {
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="message-input">
+      <input
+        type="text"
+        value={newMessage}
+        onChange={(e) => setNewMessage(e.target.value)}
+        onKeyUp={handleKeyPress}
+      />
+      <button onClick={handleSend} disabled={newMessage.trim() === ""}>
+        Send
+      </button>
+    </div>
+  );
+};
+
+const ChatListContainer = ({ baseUrl, username }) => {
+  const { messages } = useChat(baseUrl, username);
   const chatListRef = useRef(null);
-
-  useEffect(() => {
-    const fetchChatInit = async () => {
-      try {
-        const response = await fetch(`https://${baseUrl}/chat-init`);
-        const data = await response.json();
-        setMessages(data);
-      } catch (error) {
-        console.error('Failed to fetch chat init', error);
-      }
-    };
-
-    fetchChatInit();
-
-    const ws = new WebSocket(`wss://${baseUrl}/ws`);
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      setMessages((prevMessages) => [...prevMessages, message]);
-    };
-
-    return () => ws.close();
-  }, [baseUrl]);
 
   useEffect(() => {
     chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
   }, [messages]);
 
-  const handleSend = () => {
-    if (newMessage.trim() === '') return;
-
-    const ws = new WebSocket(`wss://${baseUrl}/ws`);
-    ws.onopen = () => {
-      const message = { username, message: newMessage };
-      ws.send(JSON.stringify(message));
-      setNewMessage('');
-    };
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && newMessage.trim() !== '') {
-      handleSend();
-    }
-  };
-
   const groupedMessages = groupMessagesByDate(messages);
 
   return (
+    <div className="chat-list" ref={chatListRef}>
+      {groupedMessages.map((item, index) => (
+        <ChatItem key={index} item={item} currentUser={username} />
+      ))}
+    </div>
+  );
+};
+
+const ChatScreen = ({ baseUrl, username }) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await postChatRefresh(baseUrl);
+    setIsRefreshing(false);
+  };
+
+  return (
     <div className="chat-screen">
-      <div className="title-bar">Chat</div>
-      <div className="chat-list" ref={chatListRef}>
-        {groupedMessages.map((item, index) => (
-          <ChatItem key={index} item={item} currentUser={username} />
-        ))}
-      </div>
-      <div className="message-input">
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyUp={handleKeyPress}
-        />
-        <button onClick={handleSend} disabled={newMessage.trim() === ''}>
-          Send
+      <div className="title-bar">
+        Chat
+        <button
+          className={`refresh-button ${isRefreshing ? "rotating" : ""}`}
+          onClick={isRefreshing ? null : handleRefresh}
+        >
+          <FaSync />
         </button>
       </div>
+      <ChatListContainer baseUrl={baseUrl} username={username} />
+      <ChatInputComponent baseUrl={baseUrl} username={username} />
     </div>
   );
 };

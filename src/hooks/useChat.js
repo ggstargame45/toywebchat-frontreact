@@ -1,42 +1,47 @@
 // src/hooks/useChat.js
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { fetchChatInit } from '../services/api';
 import { createWebSocket } from '../services/websocket';
 
 const useChat = (baseUrl, username) => {
   const [messages, setMessages] = useState([]);
-  const [chatError, setChatError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const wsRef = useRef(null);
+  const [isWsConnected, setIsWsConnected] = useState(false);
 
   useEffect(() => {
     if (!baseUrl || !username) return;
 
     const initChat = async () => {
-      setLoading(true);
       try {
         const data = await fetchChatInit(baseUrl);
         setMessages(data);
-        setChatError(null);
-        console.log('Chat initialized with messages:', data);
       } catch (error) {
-        console.error('Error in useChat hook:', error);
-        setChatError('Failed to initialize chat. Please check the URL.');
-      } finally {
-        setLoading(false);
+        console.error('Failed to initialize chat', error);
       }
     };
 
     initChat();
 
-    const ws = createWebSocket(baseUrl, (message) => {
-      console.log('Received message from WebSocket:', message);
+    wsRef.current = createWebSocket(baseUrl, username, (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
+    }, () => {
+      setIsWsConnected(true);
     });
 
-    return () => ws.close();
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
   }, [baseUrl, username]);
 
-  return { messages, chatError, loading };
+  const sendMessage = useCallback((message) => {
+    if (wsRef.current && isWsConnected) {
+      wsRef.current.send(JSON.stringify({ username, message }));
+    }
+  }, [username, isWsConnected]);
+
+  return { messages, sendMessage };
 };
 
 export default useChat;

@@ -1,55 +1,65 @@
 // src/App.js
 import React, { useState } from 'react';
-import Dialog from './components/Dialog/Dialog';
+import DialogBase from './components/Dialog/Dialog';
 import ChatScreen from './components/ChatScreen/ChatScreen';
-import useChat from './hooks/useChat';
 import './App.css';
+import { fetchChatInit } from './services/api';
 
-const App = () => {
+function App() {
+  const [isDialogOpen, setIsDialogOpen] = useState(true);
+  const [seenBaseUrl, setSeenBaseUrl] = useState('');
+  const [seenUsername, setSeenUsername] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
-  const { messages, chatError, loading } = useChat(baseUrl, username);
 
-  const handleConfirm = async (url, user) => {
-    console.log(`handleConfirm called with URL: https://${url} and Username: ${user}`);
-    setBaseUrl(url);
-    setUsername(user);
-    setError('');
-
+  const handleConfirm = async () => {
     try {
-      const response = await fetch(`https://${url}/chat-init`);
-      const contentType = response.headers.get('content-type');
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      setBaseUrl(seenBaseUrl.trim());
+      setUsername(seenUsername.trim());
+      const response = await fetchChatInit(seenBaseUrl);
+      if (response && username) {
+        setIsDialogOpen(false);
+        setError('');
       }
-
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        console.log('Received chat init data:', data);
-      } else {
-        throw new Error('Received non-JSON response');
-      }
-    } catch (error) {
-      console.error('Error in handleConfirm:', error);
+    } catch (err) {
       setError('Input a valid URL');
-      setBaseUrl('localhost:8080');
-      setUsername('홍길동');
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && seenBaseUrl && seenUsername) {
+      handleConfirm();
+    }
+  }
+
+  console.log("App.js: ", baseUrl, username);
+
   return (
     <div className="app">
-      {(loading || chatError || !baseUrl || !username) && (
-        <Dialog onConfirm={handleConfirm} error={error || chatError} />
-      )}
-      {!loading && !chatError && baseUrl && username && (
-        <ChatScreen baseUrl={baseUrl} username={username} />
-      )}
-      {loading && <div className="loading">Loading...</div>}
+      <ChatScreen baseUrl={baseUrl} username={username} />
+      <DialogBase isOpen={isDialogOpen}>
+        <h2>채팅 주소와 사용자 이름을 입력하세요</h2>
+        <input
+          type="text"
+          placeholder="Base URL"
+          value={seenBaseUrl}
+          onChange={(e) => setSeenBaseUrl(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Username"
+          value={seenUsername}
+          onChange={(e) => setSeenUsername(e.target.value)}
+          onKeyUp={handleKeyPress}
+        />
+        {error && <p className="error">{error}</p>}
+        <button onClick={handleConfirm} disabled={!seenBaseUrl || !seenUsername}>
+          Confirm
+        </button>
+      </DialogBase>
     </div>
   );
-};
+}
 
 export default App;

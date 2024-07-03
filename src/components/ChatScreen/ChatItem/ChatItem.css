@@ -3,7 +3,11 @@
   display: flex;
   flex-direction: column;
   margin-bottom: 10px;
+  word-wrap: break-word; /* Add this */
+  white-space: pre-wrap; /* Add this */
+  max-width: 100%; /* Add this */
 }
+
 
 .chat-item.left {
   align-items: flex-start;
@@ -23,6 +27,9 @@
   color: white;
   padding: 10px;
   border-radius: 10px;
+  max-width: 80%; /* Add this */
+  word-wrap: break-word; /* Add this */
+  white-space: pre-wrap; /* Add this */
 }
 
 .chat-item.right .message-bubble {
@@ -41,4 +48,27 @@
   margin: 10px 0;
   color: #666;
   font-weight: bold;
+}
+.enter-message {
+  display: flex;
+  padding: 10px;
+  background: white;
+}
+
+@media (min-width: 1000px) {
+  .message-bubble {
+    max-width: 600px;
+  }
+}
+
+@media (min-width: 500px) and (max-width: 999px) {
+  .message-bubble {
+    max-width: 70%;
+  }
+}
+
+@media (max-width: 499px) {
+  .message-bubble {
+    max-width: 95%;
+  }
 }
